@@ -28,6 +28,9 @@ import {
   getUser,
 } from '../../middleware/queries/donorData';
 import {SpinnerLoader} from '../../components/Spinner';
+import DocumentPicker from 'react-native-document-picker';
+import RNFS from 'react-native-fs';
+import {useState} from 'react';
 
 export function BloodUserDetailsComp({user, navigation}) {
   let [address, setAddress] = React.useState(null);
@@ -39,6 +42,7 @@ export function BloodUserDetailsComp({user, navigation}) {
   let [gpa, setGpa] = React.useState(null);
   let [workExp, setWorkExp] = React.useState(null);
   let [submitDisable, setSubmitDisable] = React.useState(false);
+  let [resume, setResume] = useState(null);
 
   React.useEffect(() => {
     // console.log('-----------student -------------', user);
@@ -57,12 +61,13 @@ export function BloodUserDetailsComp({user, navigation}) {
         setInter(data.inter);
         setMatric(data.matric);
         setWorkExp(data.workExp);
+        setResume(data.resume);
       }
     }
     studentData();
   }, []);
 
-  // console.log('--dateof birht', dateOfBirth);
+  // console.log('--dateof birht', resume);
 
   const onSubmitForm = async () => {
     Keyboard.dismiss();
@@ -74,7 +79,8 @@ export function BloodUserDetailsComp({user, navigation}) {
       matric &&
       inter &&
       workExp &&
-      gpa
+      gpa &&
+      resume
     ) {
       let data = {
         userId: user.uid,
@@ -86,9 +92,10 @@ export function BloodUserDetailsComp({user, navigation}) {
         inter,
         workExp,
         gpa,
+        resume,
       };
 
-      console.log(data);
+      // console.log(data);
 
       let response = await addDonorData(data);
       console.log(response);
@@ -108,14 +115,16 @@ export function BloodUserDetailsComp({user, navigation}) {
             elevation: 6,
           },
         });
-        setAddress(null);
-        setCnic(null);
-        setDepartment(null);
-        setDateOfbirth(null);
-        setMatric(null);
-        setInter(null);
-        setGpa(null);
-        setWorkExp(null);
+        // setAddress(null);
+        // setCnic(null);
+        // setDepartment(null);
+        // setDateOfbirth(null);
+        // setMatric(null);
+        // setInter(null);
+        // setGpa(null);
+        // setWorkExp(null);
+        // setResume(null);
+        setSubmitDisable(true);
       }
     } else {
       Toast.show({
@@ -226,6 +235,56 @@ export function BloodUserDetailsComp({user, navigation}) {
                 value={gpa}
                 onChangeText={(value) => setGpa(value)}
               />
+            </Content>
+
+            <Content style={(styles.input, {marginTop: 30})}>
+              <Label style={styles.label}>Upload Resume</Label>
+              <Button
+                onPress={() => {
+                  async function uploadResume() {
+                    try {
+                      const res = await DocumentPicker.pick({
+                        type: [DocumentPicker.types.pdf],
+                      });
+                      console.log(res);
+                      if (res && res.name.includes('.pdf')) {
+                        let rnfs = await RNFS.readFile(
+                          res.uri,
+                          'base64',
+                        ).then();
+                        if (rnfs) {
+                          setResume({fileName: res.name, base64: rnfs});
+                        }
+                      } else {
+                        Toast.show({
+                          text: 'Upload pdf files only!',
+                          position: 'top',
+                          type: 'danger',
+                          style: {
+                            marginHorizontal: 10,
+                            borderRadius: 3,
+                            minHeight: 40,
+                            shadowOffset: {
+                              width: 10,
+                              height: 3,
+                            },
+                            elevation: 6,
+                          },
+                        });
+                      }
+                    } catch (err) {
+                      if (DocumentPicker.isCancel(err)) {
+                        // User cancelled the picker, exit any dialogs or menus and move on
+                      } else {
+                        throw err;
+                      }
+                    }
+                  }
+                  uploadResume();
+                }}>
+                <Text>Upload Resume</Text>
+              </Button>
+              {resume && <Label>{resume.fileName}</Label>}
             </Content>
 
             <Content style={(styles.input, {marginTop: 35})}>

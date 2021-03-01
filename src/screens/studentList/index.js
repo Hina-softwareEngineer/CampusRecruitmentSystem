@@ -97,7 +97,7 @@ export function DonorsListComp({navigation, navState, user}) {
                         <Text style={styles.email}>{list.email}</Text>
                       </Content>
                     </Left>
-                    {user?.user?.role ? (
+                    {user?.user?.role === 'admin' ? (
                       <Right>
                         <IconE
                           name="cross"
